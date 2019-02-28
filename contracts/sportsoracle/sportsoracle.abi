@@ -1,0 +1,193 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed Feb 27 22:48:46 2019",
+    "version": "eosio::abi/1.1",
+    "structs": [
+        {
+            "name": "NBAData",
+            "base": "",
+            "fields": [
+                {
+                    "name": "globalId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "mid",
+                    "type": "string"
+                },
+                {
+                    "name": "homeTeam",
+                    "type": "string"
+                },
+                {
+                    "name": "awayTeam",
+                    "type": "string"
+                },
+                {
+                    "name": "startTime",
+                    "type": "uint32"
+                },
+                {
+                    "name": "homeScore",
+                    "type": "uint8"
+                },
+                {
+                    "name": "awayScore",
+                    "type": "uint8"
+                },
+                {
+                    "name": "isEnd",
+                    "type": "bool"
+                },
+                {
+                    "name": "scoreDetail",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "NBASubscribe",
+            "base": "",
+            "fields": [
+                {
+                    "name": "globalId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "mid",
+                    "type": "string"
+                },
+                {
+                    "name": "followers",
+                    "type": "uint64[]"
+                }
+            ]
+        },
+        {
+            "name": "OracleConfig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "authorization",
+                    "type": "string[]"
+                }
+            ]
+        },
+        {
+            "name": "add",
+            "base": "",
+            "fields": [
+                {
+                    "name": "mid",
+                    "type": "string"
+                },
+                {
+                    "name": "homeTeam",
+                    "type": "string"
+                },
+                {
+                    "name": "awayTeam",
+                    "type": "string"
+                },
+                {
+                    "name": "startTime",
+                    "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "auth",
+            "base": "",
+            "fields": [
+                {
+                    "name": "auther",
+                    "type": "string"
+                },
+                {
+                    "name": "add",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "end",
+            "base": "",
+            "fields": [
+                {
+                    "name": "globalId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "homeScore",
+                    "type": "uint8"
+                },
+                {
+                    "name": "awayScore",
+                    "type": "uint8"
+                }
+            ]
+        },
+        {
+            "name": "subscribe",
+            "base": "",
+            "fields": [
+                {
+                    "name": "mid",
+                    "type": "string"
+                },
+                {
+                    "name": "follower",
+                    "type": "uint64"
+                }
+            ]
+        }
+    ],
+    "types": [],
+    "actions": [
+        {
+            "name": "add",
+            "type": "add",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "auth",
+            "type": "auth",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "end",
+            "type": "end",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "subscribe",
+            "type": "subscribe",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "nbadata",
+            "type": "NBAData",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "nbasubscribe",
+            "type": "NBASubscribe",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "oracleconfig",
+            "type": "OracleConfig",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": [],
+    "abi_extensions": []
+}
