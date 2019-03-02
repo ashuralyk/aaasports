@@ -51,7 +51,7 @@ void NBAOracle::end( uint64_t globalId, uint8_t homeScore, uint8_t awayScore )
         action( 
             permission_level{ "sportsoracle"_n, "active"_n },
             "nbasportsaaa"_n,
-            "oraclecome"_n,
+            "settle"_n,
             make_tuple( (*i).globalId, (*j).followers )
         )
         .send();

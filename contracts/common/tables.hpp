@@ -4,6 +4,8 @@
 #include <eosiolib/singleton.hpp>
 #include <string>
 #include <set>
+#include <vector>
+#include <tuple>
 
 using namespace eosio;
 using namespace std;
@@ -71,7 +73,8 @@ struct [[eosio::table("nbaguess"), eosio::contract("nbasportsaaa")]] NBAGuess
     uint64_t globalId;       // 全局ID
     string   mid;            // 比赛ID
     uint8_t  type;           // 比赛类型
-    string   content;        // 竞猜内容
+    uint8_t  betteam;        // 竞猜队伍
+    uint16_t score;          // 竞猜分数
     name     creator;        // 竞猜创建者
     name     player;         // 竞猜另一方玩家
     asset    tokenAmount;    // 竞猜下注金额
