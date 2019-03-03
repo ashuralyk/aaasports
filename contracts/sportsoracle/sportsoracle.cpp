@@ -38,6 +38,11 @@ void NBAOracle::end( uint64_t globalId, uint8_t homeScore, uint8_t awayScore )
         ROLLBACK( "you are NOT in the auth list" );
     }
 
+    if ( homeScore == awayScore )
+    {
+        ROLLBACK( "'homeScore' can't be equal to 'awayScore'" );
+    }
+
     auto i = _nbaData.require_find( globalId, "there is no nba data that matches this 'globalId'" );
     _nbaData.modify( i, get_self(), [&](auto &nba) {
         nba.homeScore = homeScore;

@@ -73,12 +73,11 @@ struct [[eosio::table("nbaguess"), eosio::contract("nbasportsaaa")]] NBAGuess
     uint64_t globalId;       // 全局ID
     string   mid;            // 比赛ID
     uint8_t  type;           // 比赛类型
-    uint8_t  betteam;        // 竞猜队伍
-    uint16_t score;          // 竞猜分数
+    uint8_t  bet;            // 竞猜方向
+    uint16_t score;          // 竞猜值(根据类型type的不同这个值的含义也不同)
     name     creator;        // 竞猜创建者
     name     player;         // 竞猜另一方玩家
     asset    tokenAmount;    // 竞猜下注金额
-    string   result;         // 比赛最终结果
     name     winner;         // 竞猜胜利方
 
     uint64_t primary_key() const {
