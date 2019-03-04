@@ -23,9 +23,10 @@ inline void ROLLBACK( string &&m )
 namespace ORACLE
 {
 
-struct [[eosio::table("oracleconfig"), eosio::contract("sportsoracle")]] OracleConfig
+struct [[eosio::table("authconfig"), eosio::contract("sportsoracle")]] OracleConfig
 {
-    set<string> authorization;
+    set<name> authorization;
+    name      guessContract;
 };
 
 struct [[eosio::table("nbadata"), eosio::contract("sportsoracle")]] NBAData
@@ -66,6 +67,7 @@ struct [[eosio::table("nbaconfig"), eosio::contract("nbasportsaaa")]] NBAConfig
     float failedFeeRate;
     float winnerFeeRate;
     float overCreateFeeRate;
+    name  oracleContract;
 };
 
 struct [[eosio::table("nbaguess"), eosio::contract("nbasportsaaa")]] NBAGuess
@@ -99,7 +101,7 @@ typedef multi_index<"nbaguess"_n, GUESS::NBAGuess>          NBAGuess;
 namespace SINGLE
 {
 
-typedef singleton<"config"_n, ORACLE::OracleConfig> Config;
-typedef singleton<"nbaconfig"_n, GUESS::NBAConfig>  NBAConfig;
+typedef singleton<"authconfig"_n, ORACLE::OracleConfig> Config;
+typedef singleton<"nbaconfig"_n, GUESS::NBAConfig>      NBAConfig;
 
 }

@@ -4,21 +4,44 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "eosio-cpp",
             "type": "shell",
-            "command": "msbuild",
-            "args": [
-                // Ask msbuild to generate full paths for file names.
-                "/property:GenerateFullPaths=true",
-                "/t:build"
+            "command": [
+                "ssh vimchain@192.168.100.169 'cd /home/vimchain/Starteos/CONTRACTS_DIR/sportsoracle && eosio-cpp -o sportsoracle.wasm sportsoracle.cpp --abigen'"
             ],
-            "group": "build",
-            "presentation": {
-                // Reveal the output only if unrecognized errors occur.
-                "reveal": "silent"
-            },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
-            "problemMatcher": "$msCompile"
+            "problemMatcher": []
+        },
+        {
+            "label": "scp",
+            "type": "shell",
+            "command": [
+                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/sportsoracle vimchain@192.168.100.169:/home/vimchain/Starteos/CONTRACTS_DIR",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "scp-common",
+            "type": "shell",
+            "command": [
+                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/common vimchain@192.168.100.169:/home/vimchain/Starteos/CONTRACTS_DIR",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "deploy",
+            "type": "shell",
+            "command": [
+                "ssh vimchain@192.168.100.169 'cleos set contract user.com /home/vimchain/Starteos/CONTRACTS_DIR/sportsoracle/'"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "open wallet",
+            "type": "shell",
+            "command": [
+                "ssh vimchain@192.168.100.169 'sh /home/vimchain/Starteos/wiki/unlock_default.sh'"
+            ],
+            "problemMatcher": []
         }
     ]
 }
