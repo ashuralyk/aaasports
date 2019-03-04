@@ -21,14 +21,22 @@ public:
     void add( string mid, string homeTeam, string awayTeam, uint32_t startTime );
 
     [[eosio::action]]
-    void end( uint64_t globalId, uint8_t homeScore, uint8_t awayScore );
+    void end( string mid, uint8_t homeScore, uint8_t awayScore );
 
     [[eosio::action]]
-    void auth( string auther, bool add );
+    void erase( string mid );
 
     [[eosio::action]]
-    void subscribe( string mid, uint64_t follower );
+    void auth( name auther, bool add );
+
+    [[eosio::action]]
+    void setguess( name guess );
+
+    [[eosio::action]]
+    void subscribe( string mid, uint64_t follower, bool follow );
 
 private:
     tuple<INDEX::NBASubscribe::const_iterator, uint64_t> findFollower( string mid );
+
+    void checkAuth();
 };
