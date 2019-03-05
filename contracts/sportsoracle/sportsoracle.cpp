@@ -23,11 +23,11 @@ void NBAOracle::add( string mid, string homeTeam, string awayTeam, uint32_t star
         nba.startTime = startTime;
         nba.homeScore = 0;
         nba.awayScore = 0;
-        nba.isEnd     = false;
+        nba.endTime   = 0;
     });
 }
 
-void NBAOracle::end( string mid, uint8_t homeScore, uint8_t awayScore )
+void NBAOracle::end( string mid, uint8_t homeScore, uint8_t awayScore, uint32_t endTime )
 {
     checkAuth();
 
@@ -45,7 +45,7 @@ void NBAOracle::end( string mid, uint8_t homeScore, uint8_t awayScore )
     _nbaData.modify( i, get_self(), [&](auto &nba) {
         nba.homeScore = homeScore;
         nba.awayScore = awayScore;
-        nba.isEnd     = true;
+        nba.endTime   = endTime;
     });
 
     auto n = findFollower( (*i).mid );
@@ -110,7 +110,7 @@ void NBAOracle::setguess( name guess )
 
     if (! is_account(guess) )
     {
-        ROLLBACK( "please make sure the existence of guess contract" );
+        ROLLBACK( "please make sure the existence of the guess contract" );
     }
 
     auto gc = _config.get_or_default( {} );

@@ -38,7 +38,7 @@ struct [[eosio::table("nbadata"), eosio::contract("sportsoracle")]] NBAData
     uint32_t startTime;         // 开始时间（UNIX时间戳）
     uint8_t  homeScore;         // 主队分数
     uint8_t  awayScore;         // 客队分数
-    bool     isEnd;             // 比赛是否结束
+    uint32_t endTime;           // 结束时间（UINX时间戳）
     string   scoreDetail;       // 分数详情（待定）
 
     uint64_t primary_key() const {
@@ -66,8 +66,16 @@ struct [[eosio::table("nbaconfig"), eosio::contract("nbasportsaaa")]] NBAConfig
 {
     float failedFeeRate;
     float winnerFeeRate;
-    float overCreateFeeRate;
     name  oracleContract;
+
+    struct OverCreate
+    {
+        float   startRate;
+        float   perRate;
+        uint8_t startCreate;
+        uint8_t perCreate;
+    }
+    overCreate;
 };
 
 struct [[eosio::table("nbaguess"), eosio::contract("nbasportsaaa")]] NBAGuess
@@ -76,7 +84,7 @@ struct [[eosio::table("nbaguess"), eosio::contract("nbasportsaaa")]] NBAGuess
     string   mid;            // 比赛ID
     uint8_t  type;           // 比赛类型
     uint8_t  bet;            // 竞猜方向
-    uint16_t score;          // 竞猜值(根据类型type的不同这个值的含义也不同)
+    float    score;          // 竞猜值(根据类型type的不同这个值的含义也不同)
     name     creator;        // 竞猜创建者
     name     player;         // 竞猜另一方玩家
     asset    tokenAmount;    // 竞猜下注金额

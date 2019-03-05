@@ -1,17 +1,22 @@
 
-#include <algorithm>
 #include <functional>
 #include "nbasportsaaa.hpp"
 
 void NBASports::setconfig( GUESS::NBAConfig config )
 {
     require_auth( get_self() );
+    eosio_assert( config.overCreate.perCreate > 0, "the 'perCreate' must be greater than 0" );
     _config.set( config, get_self() );
 }
 
 void NBASports::transfer( name from, name to, asset quantity, string memo )
 {
-    if ( from == to || from == get_self() || to != get_self() || quantity.symbol != symbol("EOS", 4) )
+    if ( from == get_self() || to != get_self() )
+    {
+        return;
+    }
+
+    if ( from == to || quantity.symbol != symbol("EOS", 4) )
     {
         ROLLBACK( "invalid transfer params" );
     }
@@ -33,10 +38,12 @@ void NBASports::transfer( name from, name to, asset quantity, string memo )
 void NBASports::create( string &&param, name creator, asset value )
 {
     vector<string> params = split( param, '|' );
-    if ( params.size() != 4 )
+    if ( params.size() != 4 || stoul(params[1]) > 1 || stoul(params[2]) > 2 )
     {
-        ROLLBACK( "invalid 'create' memo: create|mid|bet|type|score|" );
+        ROLLBACK( "invalid 'create' memo: create|mid|bet[=0,1]|type[=0,1,2]|score|" );
     }
+
+    print( params[0], ", ", params[1], ", ", params[2], ", ", params[3] );
 
     bool hasMid;
     ORACLE::NBAData nbaData;
@@ -45,28 +52,30 @@ void NBASports::create( string &&param, name creator, asset value )
 
     if ( false == hasMid )
     {
-        ROLLBACK( "the 'mid' from the memo doesn't exist" );
+        ROLLBACK( "the 'mid' from the memo doesn't exist in the data set" );
     }
 
-    uint64_t globalId = pushGuess({
+    bool pushed;
+    uint64_t globalId;
+    tie(pushed, globalId) = pushGuess({
         .mid         = params[0],
         .bet         = static_cast<uint8_t>( stoul(params[1]) ),
         .type        = static_cast<uint8_t>( stoul(params[2]) ),
-        .score       = static_cast<uint8_t>( stoul(params[3]) ),
+        .score       = stoul(params[3]) / 10.f,
         .creator     = creator,
         .tokenAmount = value
     });
 
-    if ( 0 == globalId )
+    if ( false == pushed )
     {
         ROLLBACK( "the 'mid' is already created by you" );
     }
 
     action( 
-        permission_level{ "nbasportsaaa"_n, "active"_n },
-        "sportsoracle"_n,
+        permission_level{ get_self(), "active"_n },
+        requireOracleAccount(),
         "subscribe"_n,
-        make_tuple( params[0], globalId )
+        make_tuple( params[0], globalId, true )
     )
     .send();
 }
@@ -74,9 +83,9 @@ void NBASports::create( string &&param, name creator, asset value )
 void NBASports::join( string &&param, name player, asset value )
 {
     vector<string> params = split( param, '|' );
-    if ( params.size() != 1 )
+    if ( params.size() != 2 )
     {
-        ROLLBACK( "invalid 'create' memo: join|mid|creator|" );
+        ROLLBACK( "invalid 'join' memo: join|mid|creator|" );
     }
 
     bool find = false;
@@ -85,10 +94,10 @@ void NBASports::join( string &&param, name player, asset value )
 
     if ( false == find )
     {
-        ROLLBACK( "the 'mid' doesn't exist" );
+        ROLLBACK( "the 'mid' doesn't exist in the guess set" );
     }
 
-    if ( (*i).creator == name(params[1]) )
+    if ( (*i).creator != name(params[1]) )
     {
         ROLLBACK( "this guess isn't created by this creator" );
     }
@@ -103,6 +112,11 @@ void NBASports::join( string &&param, name player, asset value )
         ROLLBACK( "the token doesn't match this guess" );
     }
 
+    if ( (*i).creator == player )
+    {
+        ROLLBACK( "you can't play with yourself" );
+    }
+
     _nbaGuess.modify( i, get_self(), [&](auto &v) {
         v.player = player;
     });
@@ -110,7 +124,7 @@ void NBASports::join( string &&param, name player, asset value )
 
 void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
 {
-    require_auth( "sportsoracle"_n );
+    require_auth( requireOracleAccount() );
     
     bool find;
     ORACLE::NBAData oracle;
@@ -121,9 +135,9 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
         ROLLBACK( "the 'globalId' from oracle doesn't exist" );
     }
 
-    if ( false == oracle.isEnd || oracle.homeScore == 0 || oracle.awayScore == 0 )
+    if ( oracle.endTime == 0 || oracle.homeScore == 0 || oracle.awayScore == 0 )
     {
-        ROLLBACK( "the flags 'isEnd', 'homeScore', 'awayScore' aren't set yet" );
+        ROLLBACK( "the flags 'endTime', 'homeScore', 'awayScore' aren't set yet" );
     }
 
     for ( uint64_t follower : followers )
@@ -142,9 +156,79 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
         }
 
         _nbaGuess.modify( i, get_self(), [&](auto &v) {
-            v.winner = getWinner( oracle, v );
+            // 结束的时候还没有人参加
+            if ( v.player == name() )
+            {
+                v.winner = v.creator;
+                asset payback = v.tokenAmount * (1.f - getFeeRate<0>());
+                action(
+                    permission_level{ get_self(), "active"_n },
+                    "eosio.token"_n,
+                    "transfer"_n,
+                    make_tuple( get_self(), v.creator, payback, "您在AAASports上的竞猜{" + v.mid + "}已结束，返还无人参加情况下的EOS(扣除手续费)" )
+                ).send();
+            }
+            // 正常结束竞猜
+            else
+            {
+                v.winner = getWinner( oracle, v );
+                action(
+                    permission_level{ get_self(), "active"_n },
+                    "eosio.token"_n,
+                    "transfer"_n,
+                    make_tuple( get_self(), v.winner, v.tokenAmount * 2 * (1.f - getFeeRate<1>()), "恭喜，您在AAASports上赢得竞猜{" + v.mid + "}，已发放EOS(扣除手续费)" )
+                ).send();
+            }
         });
     }
+}
+
+void NBASports::erase( string mid, name creator )
+{
+    require_auth( get_self() );
+
+    auto i = find_if( _nbaGuess.begin(), _nbaGuess.end(), [&](auto &v) {
+        return v.mid == mid && v.creator == creator;
+    });
+
+    if ( i == _nbaGuess.end() )
+    {
+        ROLLBACK( "there isn't {" + mid + "} in the guess set" );
+    }
+
+    auto nba = (*i);
+    print( nba.creator, ", ", nba.player, ", ", nba.tokenAmount );
+    _nbaGuess.erase( i );
+
+    if ( nba.winner == name() )
+    {
+        // 返回创建者游戏币
+        action(
+            permission_level{ get_self(), "active"_n },
+            "eosio.token"_n,
+            "transfer"_n,
+            make_tuple( get_self(), nba.creator, nba.tokenAmount, "您在AAASports上创建的竞猜{" + mid + "}已被删除，退还抵押的EOS" )
+        ).send();
+
+        // 返回加入者游戏币
+        if ( nba.player != name() )
+        {
+            action(
+                permission_level{ get_self(), "active"_n },
+                "eosio.token"_n,
+                "transfer"_n,
+                make_tuple( get_self(), nba.player, nba.tokenAmount, "您在AAASports上加入的竞猜{" + mid + "}已被删除，退还抵押的EOS" )
+            ).send();
+        }
+    }
+
+    // 注销在预言机中的订阅服务
+    action(
+        permission_level{ get_self(), "active"_n },
+        requireOracleAccount(),
+        "subscribe"_n,
+        make_tuple( nba.mid, nba.globalId, false )
+    ).send();
 }
 
 vector<string> NBASports::split( string &view, char s )
@@ -152,14 +236,15 @@ vector<string> NBASports::split( string &view, char s )
     vector<string> params;
     for ( uint32_t i = view.find(s), j = 0; i != string::npos; j = i + 1, i = view.find(s, j) )
     {
-        params.push_back( view.substr(j, i) );
+        params.push_back( view.substr(j, i - j) );
     }
     return params;
 }
 
-uint64_t NBASports::pushGuess( GUESS::NBAGuess &&guess )
+tuple<bool, uint64_t> NBASports::pushGuess( GUESS::NBAGuess &&guess )
 {
     uint64_t globalId = 0;
+
     if ( guess.type < 3 || guess.bet < 2 )
     {
         for ( auto i = _nbaGuess.begin(); i != _nbaGuess.end(); ++i )
@@ -168,21 +253,21 @@ uint64_t NBASports::pushGuess( GUESS::NBAGuess &&guess )
             globalId = nba.globalId;
             if ( nba.mid == guess.mid && nba.creator == guess.creator )
             {
-                globalId = 0;
-                break;
+                return make_tuple( false, 0 );
             }
         }
 
-        if ( globalId > 0 )
-        {
-            _nbaGuess.emplace( get_self(), [&](auto &v) {
-                v = guess;
-                v.globalId = globalId + 1;
-            });
-        }
+        // 扣除创建过多情况下的手续费
+        guess.tokenAmount *= 1.f - getFeeRate<2>( guess.creator );
+
+        // 加入竞猜
+        _nbaGuess.emplace( get_self(), [&](auto &v) {
+            v = guess;
+            v.globalId = ++globalId;
+        });
     }
 
-    return globalId;
+    return make_tuple( true, globalId );
 }
 
 name NBASports::getWinner( ORACLE::NBAData &oracle, GUESS::NBAGuess &guess )
@@ -207,9 +292,9 @@ name NBASports::getWinner( ORACLE::NBAData &oracle, GUESS::NBAGuess &guess )
         {
             creatorWin = [&]() {
                 if ( guess.bet == 0 ) {
-                    return static_cast<float>(oracle.homeScore + oracle.awayScore) > (guess.score / 10.f);
+                    return static_cast<float>(oracle.homeScore + oracle.awayScore) > guess.score;
                 } else {
-                    return static_cast<float>(oracle.homeScore + oracle.awayScore) < (guess.score / 10.f);
+                    return static_cast<float>(oracle.homeScore + oracle.awayScore) < guess.score;
                 }
             };
         }
@@ -219,9 +304,9 @@ name NBASports::getWinner( ORACLE::NBAData &oracle, GUESS::NBAGuess &guess )
         {
             creatorWin = [&]() {
                 if ( guess.bet == 0 ) {
-                    return static_cast<float>(oracle.homeScore - oracle.awayScore) > (guess.score / 10.f);
+                    return static_cast<float>(oracle.homeScore - oracle.awayScore) > guess.score;
                 } else {
-                    return static_cast<float>(oracle.homeScore - oracle.awayScore) < (guess.score / 10.f);
+                    return static_cast<float>(oracle.homeScore - oracle.awayScore) < guess.score;
                 }
             };
         }
@@ -240,12 +325,12 @@ void apply( uint64_t receiver, uint64_t code, uint64_t action )
     {
         switch( action )
         {
-            EOSIO_DISPATCH_HELPER( NBASports, (setconfig)(settle) )
+            EOSIO_DISPATCH_HELPER( NBASports, (setconfig)(settle)(erase) )
         }
     }
     else
     {
-        if ( code == ("eosio.token"_n).value && action == "transfer"_n.value )
+        if ( code == "eosio.token"_n.value && action == "transfer"_n.value )
         {
             execute_action( name(receiver), name(code), &NBASports::transfer );
         }
