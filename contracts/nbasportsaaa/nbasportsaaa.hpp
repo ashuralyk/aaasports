@@ -80,22 +80,23 @@ private:
     }
 
     template < int _FeeTy >
-    float getFeeRate( name creator = name() )
+    asset getFee( asset quantity, name creator = name() )
     {
         auto c = _config.get_or_default( {} );
-        if constexpr ( _FeeTy == 0 ) return c.failedFeeRate;
-        if constexpr ( _FeeTy == 1 ) return c.winnerFeeRate;
+        if constexpr ( _FeeTy == 0 ) return static_cast<uint32_t>( c.failedFeeRate * 100 ) * quantity / 100;
+        if constexpr ( _FeeTy == 1 ) return static_cast<uint32_t>( c.winnerFeeRate * 100 ) * quantity / 100;
         if constexpr ( _FeeTy == 2 ) {
             if ( creator != name() ) {
-                auto quantity = count_if( _nbaGuess.begin(), _nbaGuess.end(), [&](auto &v) {
+                auto sum = count_if( _nbaGuess.begin(), _nbaGuess.end(), [&](auto &v) {
                     return v.creator == creator;
                 });
                 auto o = c.overCreate;
-                if ( auto d = quantity - o.startCreate; d >= 0 ) {
-                    return o.startRate + o.perRate * (d % o.perCreate);
+                if ( auto d = sum - o.startCreate; d >= 0 ) {
+                    float rate = o.startRate + o.perRate * (d % o.perCreate);
+                    return static_cast<uint32_t>( rate * 100 ) * quantity / 100;
                 }
             }
         }
-        return 0.f;
+        return asset( 0, symbol("EOS", 4) );
     }
 };

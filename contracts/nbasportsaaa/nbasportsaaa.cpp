@@ -55,6 +55,11 @@ void NBASports::create( string &&param, name creator, asset value )
         ROLLBACK( "the 'mid' from the memo doesn't exist in the data set" );
     }
 
+    if ( nbaData.endTime > 0 || nbaData.homeScore > 0 || nbaData.awayScore > 0 )
+    {
+        ROLLBACK( "the game represented by this 'mid' from the memo has closed yet" );
+    }
+
     bool pushed;
     uint64_t globalId;
     tie(pushed, globalId) = pushGuess({
@@ -117,6 +122,11 @@ void NBASports::join( string &&param, name player, asset value )
         ROLLBACK( "you can't play with yourself" );
     }
 
+    if ( (*i).winner != name() )
+    {
+        ROLLBACK( "this guess already has a winner, refuse to join" );
+    }
+
     _nbaGuess.modify( i, get_self(), [&](auto &v) {
         v.player = player;
     });
@@ -160,7 +170,9 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
             if ( v.player == name() )
             {
                 v.winner = v.creator;
-                asset payback = v.tokenAmount * (1.f - getFeeRate<0>());
+                print( "FAIL: old = ", v.tokenAmount );
+                asset payback = v.tokenAmount - getFee<0>( v.tokenAmount );
+                print( ", new = ", payback );
                 action(
                     permission_level{ get_self(), "active"_n },
                     "eosio.token"_n,
@@ -172,11 +184,14 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
             else
             {
                 v.winner = getWinner( oracle, v );
+                print( "WIN: old = ", v.tokenAmount * 2 );
+                asset payback = 2 * (v.tokenAmount - getFee<1>( v.tokenAmount ));
+                print( ", new = ", payback );
                 action(
                     permission_level{ get_self(), "active"_n },
                     "eosio.token"_n,
                     "transfer"_n,
-                    make_tuple( get_self(), v.winner, v.tokenAmount * 2 * (1.f - getFeeRate<1>()), "恭喜，您在AAASports上赢得竞猜{" + v.mid + "}，已发放EOS(扣除手续费)" )
+                    make_tuple( get_self(), v.winner, payback, "恭喜，您在AAASports上赢得竞猜{" + v.mid + "}，已发放EOS(扣除手续费)" )
                 ).send();
             }
         });
@@ -258,7 +273,9 @@ tuple<bool, uint64_t> NBASports::pushGuess( GUESS::NBAGuess &&guess )
         }
 
         // 扣除创建过多情况下的手续费
-        guess.tokenAmount *= 1.f - getFeeRate<2>( guess.creator );
+        print( "CREATE: old = ", guess.tokenAmount );
+        guess.tokenAmount -= getFee<2>( guess.tokenAmount, guess.creator );
+        print( ", new = ", guess.tokenAmount );
 
         // 加入竞猜
         _nbaGuess.emplace( get_self(), [&](auto &v) {

@@ -27,7 +27,7 @@ void NBAOracle::add( string mid, string homeTeam, string awayTeam, uint32_t star
     });
 }
 
-void NBAOracle::end( string mid, uint8_t homeScore, uint8_t awayScore, uint32_t endTime )
+void NBAOracle::close( string mid, uint8_t homeScore, uint8_t awayScore, uint32_t endTime )
 {
     checkAuth();
 
@@ -197,4 +197,4 @@ void NBAOracle::checkAuth()
     }
 }
 
-EOSIO_DISPATCH( NBAOracle, (add)(end)(erase)(auth)(setguess)(subscribe) )
+EOSIO_DISPATCH( NBAOracle, (add)(close)(erase)(auth)(setguess)(subscribe) )

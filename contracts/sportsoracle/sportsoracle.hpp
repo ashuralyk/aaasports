@@ -21,7 +21,7 @@ public:
     void add( string mid, string homeTeam, string awayTeam, uint32_t startTime );
 
     [[eosio::action]]
-    void end( string mid, uint8_t homeScore, uint8_t awayScore, uint32_t endTime );
+    void close( string mid, uint8_t homeScore, uint8_t awayScore, uint32_t endTime );
 
     [[eosio::action]]
     void erase( string mid );
