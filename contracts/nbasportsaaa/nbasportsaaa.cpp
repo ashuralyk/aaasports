@@ -2,11 +2,18 @@
 #include <functional>
 #include "nbasportsaaa.hpp"
 
-void NBASports::setconfig( GUESS::NBAConfig config )
+void NBASports::setconfig( GUESS::NBAConfig config, bool del )
 {
     require_auth( get_self() );
-    eosio_assert( config.overCreate.perCreate > 0, "the 'perCreate' must be greater than 0" );
-    _config.set( config, get_self() );
+    if ( del )
+    {
+        _config.remove();
+    }
+    else
+    {
+        eosio_assert( config.overCreate.perCreate > 0, "the 'perCreate' must be greater than 0" );
+        _config.set( config, get_self() );
+    }
 }
 
 void NBASports::transfer( name from, name to, asset quantity, string memo )
@@ -276,6 +283,11 @@ tuple<bool, uint64_t> NBASports::pushGuess( GUESS::NBAGuess &&guess )
         print( "CREATE: old = ", guess.tokenAmount );
         guess.tokenAmount -= getFee<2>( guess.tokenAmount, guess.creator );
         print( ", new = ", guess.tokenAmount );
+
+        if ( guess.tokenAmount < getLowerBoundAsset(guess.creator) )
+        {
+            ROLLBACK( "your asset doesn't match our current start bet foud of yours, please increase and try again" );
+        }
 
         // 加入竞猜
         _nbaGuess.emplace( get_self(), [&](auto &v) {

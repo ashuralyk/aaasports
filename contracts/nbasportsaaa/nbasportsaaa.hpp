@@ -16,7 +16,7 @@ public:
     {}
 
     [[eosio::action]]
-    void setconfig( GUESS::NBAConfig config );
+    void setconfig( GUESS::NBAConfig config, bool del );
 
     void transfer( name from, name to, asset quantity, string memo );
 
@@ -98,5 +98,20 @@ private:
             }
         }
         return asset( 0, symbol("EOS", 4) );
+    }
+
+    asset getLowerBoundAsset( name creator )
+    {
+        auto c = _config.get_or_default( {} );
+        if ( creator != name() ) {
+            auto sum = count_if( _nbaGuess.begin(), _nbaGuess.end(), [&](auto &v) {
+                return v.creator == creator;
+            });
+            auto o = c.overCreate;
+            if ( auto d = sum - o.startCreate; d >= 0 ) {
+                return o.lowerFund + d * o.stepFund;
+            }
+        }
+        return c.overCreate.lowerFund;
     }
 };

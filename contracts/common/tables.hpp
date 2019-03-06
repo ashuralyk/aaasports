@@ -74,6 +74,8 @@ struct [[eosio::table("nbaconfig"), eosio::contract("nbasportsaaa")]] NBAConfig
         float   perRate;
         uint8_t startCreate;
         uint8_t perCreate;
+        asset   lowerFund;
+        asset   stepFund;
     }
     overCreate;
 };
