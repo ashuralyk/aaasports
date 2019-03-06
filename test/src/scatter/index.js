@@ -62,14 +62,15 @@ function succeed(json = null) {
 }
 
 export async function ConnectTo(networkId, appName) {
-  if (! runtime.connected ) {
+  if (! runtime.connected) {
     let con = await ScatterJs.scatter.connect(appName)
-    if (! con ) {
+    if (! con) {
       return fail('please install scatter at first')
     }
 
+    let network = networks[networkId]
     let login = await ScatterJs.scatter.login({
-      accounts: [networks[networkId]]
+      accounts: [network]
     })
 
     runtime.account = login.accounts.find(a => a.blockchain === 'eos')
@@ -126,21 +127,100 @@ export async function AddGame(params) {
   }
 }
 
-export async function GetRoundHistory(roundId) {
-  let eos = ScatterJs.scatter.eos(network, Eos)
-  let rows = null
+export async function CloseGame(params) {
   try {
-    rows = await eos.getTableRows({
-      json: true,
-      code: conf.scatterGameAccount,
-      scope: conf.scatterGameAccount,
-      table: 'history',
-      lower_bound: roundId,
-      upper_bound: roundId
-    })
+    let data = {
+      actions: [
+        {
+          account: Config.oracleAccount,
+          name: 'close',
+          authorization: [{
+            actor: GetLoginName(),
+            permission: GetLoginAuth()
+          }],
+          data: params
+        }
+      ]
+    }
+    let txJson = await runtime.eos.transaction(data)
+    return succeed(txJson);
   } catch (e) {
-    return { result: false, error: e }
+    return fail(e)
   }
+}
 
-  return { result: true, rows: rows }
+export async function EraseGame(params) {
+  try {
+    let data = {
+      actions: [
+        {
+          account: Config.oracleAccount,
+          name: 'erase',
+          authorization: [{
+            actor: GetLoginName(),
+            permission: GetLoginAuth()
+          }],
+          data: params
+        }
+      ]
+    }
+    let txJson = await runtime.eos.transaction(data)
+    return succeed(txJson);
+  } catch (e) {
+    return fail(e)
+  }
+}
+
+export async function GetOracle() {
+  try {
+    let rows = await runtime.eos.getTableRows({
+      json: true,
+      code: Config.oracleAccount,
+      scope: Config.oracleAccount,
+      table: 'nbadata'
+    })
+    return succeed(rows)
+  } catch (e) {
+    return fail(e)
+  }
+}
+
+//============================================
+// 和NBA账户交互
+//============================================
+
+export async function Transfer(params) {
+  try {
+    let data = {
+      actions: [
+        {
+          account: 'eosio.token',
+          name: 'transfer',
+          authorization: [{
+            actor: GetLoginName(),
+            permission: GetLoginAuth()
+          }],
+          data: params
+        }
+      ]
+    }
+    let txJson = await runtime.eos.transaction(data)
+    return succeed(txJson);
+  } catch (e) {
+    return fail(e)
+  }
+}
+
+export async function GetGuess() {
+  try {
+    let rows = await runtime.eos.getTableRows({
+      json: true,
+      code: Config.nbaAccount,
+      scope: Config.nbaAccount,
+      table: 'nbaguess'
+    })
+    return succeed(rows)
+  } catch (e) {
+    return fail(e)
+  }
 }

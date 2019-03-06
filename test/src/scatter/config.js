@@ -1,5 +1,5 @@
 
 export default {
-    oracleAccount: 'user.com',
-    nbaAccount: 'buy.com'
+    oracleAccount: 'sportsoracle',
+    nbaAccount: 'aaasportsnba'
 }
