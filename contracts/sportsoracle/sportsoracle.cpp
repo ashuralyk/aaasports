@@ -66,7 +66,7 @@ void NBAOracle::close( string mid, uint8_t homeScore, uint8_t awayScore, uint32_
     }
 }
 
-void NBAOracle::erase( string mid )
+void NBAOracle::erase( string mid, bool del )
 {
     checkAuth();
 
@@ -82,8 +82,12 @@ void NBAOracle::erase( string mid )
         auto n = findFollower( mid );
         if ( auto j = get<0>(n); j != _nbaSubscribe.end() )
         {
+            if ( del )
+            {
+                eraseGuess( mid, (*j).followers );
+            }
             _nbaSubscribe.erase( j );
-            print( " find subscribe, just delete it" );
+            print( " find subscribe, delete it" );
         }
     }
 }
@@ -194,6 +198,28 @@ void NBAOracle::checkAuth()
     if ( any_of(auths.authorization.begin(), auths.authorization.end(), [&](auto &auth) {return !has_auth(auth);}) ) 
     {
         ROLLBACK( "you are NOT in the auth list" );
+    }
+}
+
+void NBAOracle::eraseGuess( string mid, const set<uint64_t> &guessGlobalIds )
+{
+    auto gc = _config.get_or_default( {} );
+    if ( gc.guessContract != name() )
+    {
+        INDEX::NBAGuess nbaGuess( gc.guessContract, gc.guessContract.value );
+        for ( uint64_t id : guessGlobalIds )
+        {
+            if ( auto i = nbaGuess.find(id); i != nbaGuess.end() )
+            {
+                action( 
+                    permission_level{ get_self(), "active"_n },
+                    gc.guessContract,
+                    "erase"_n,
+                    make_tuple( mid, (*i).creator )
+                )
+                .send();
+            }
+        }
     }
 }
 

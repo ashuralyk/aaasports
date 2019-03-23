@@ -207,7 +207,10 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
 
 void NBASports::erase( string mid, name creator )
 {
-    require_auth( get_self() );
+    if (! has_auth(requireOracleAccount()) )
+    {
+        require_auth( get_self() );
+    }
 
     auto i = find_if( _nbaGuess.begin(), _nbaGuess.end(), [&](auto &v) {
         return v.mid == mid && v.creator == creator;

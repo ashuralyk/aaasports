@@ -24,7 +24,7 @@ public:
     void close( string mid, uint8_t homeScore, uint8_t awayScore, uint32_t endTime );
 
     [[eosio::action]]
-    void erase( string mid );
+    void erase( string mid, bool del );
 
     [[eosio::action]]
     void auth( name auther, bool add );
@@ -39,4 +39,6 @@ private:
     tuple<INDEX::NBASubscribe::const_iterator, uint64_t> findFollower( string mid );
 
     void checkAuth();
+
+    void eraseGuess( string mid, const set<uint64_t> &guessGlobalIds );
 };
