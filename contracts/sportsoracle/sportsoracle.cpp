@@ -191,7 +191,7 @@ tuple<INDEX::NBASubscribe::const_iterator, uint64_t> NBAOracle::findFollower( st
 void NBAOracle::checkAuth()
 {
     auto auths = _config.get_or_default( {} );
-    if ( any_of(auths.authorization.begin(), auths.authorization.end(), [&](auto &auth) {return !has_auth(auth);}) ) 
+    if (! any_of(auths.authorization.begin(), auths.authorization.end(), [&](auto &auth) {return has_auth(auth);}) ) 
     {
         ROLLBACK( "you are NOT in the auth list" );
     }

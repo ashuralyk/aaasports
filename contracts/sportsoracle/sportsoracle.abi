@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Mar  3 21:25:02 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Mar 10 21:38:50 2019",
     "version": "eosio::abi/1.1",
     "structs": [
         {
@@ -35,8 +35,8 @@
                     "type": "uint8"
                 },
                 {
-                    "name": "isEnd",
-                    "type": "bool"
+                    "name": "endTime",
+                    "type": "uint32"
                 },
                 {
                     "name": "scoreDetail",
@@ -68,7 +68,11 @@
             "fields": [
                 {
                     "name": "authorization",
-                    "type": "string[]"
+                    "type": "name[]"
+                },
+                {
+                    "name": "guessContract",
+                    "type": "name"
                 }
             ]
         },
@@ -100,7 +104,7 @@
             "fields": [
                 {
                     "name": "auther",
-                    "type": "string"
+                    "type": "name"
                 },
                 {
                     "name": "add",
@@ -109,12 +113,12 @@
             ]
         },
         {
-            "name": "end",
+            "name": "close",
             "base": "",
             "fields": [
                 {
-                    "name": "globalId",
-                    "type": "uint64"
+                    "name": "mid",
+                    "type": "string"
                 },
                 {
                     "name": "homeScore",
@@ -123,6 +127,30 @@
                 {
                     "name": "awayScore",
                     "type": "uint8"
+                },
+                {
+                    "name": "endTime",
+                    "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "erase",
+            "base": "",
+            "fields": [
+                {
+                    "name": "mid",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "setguess",
+            "base": "",
+            "fields": [
+                {
+                    "name": "guess",
+                    "type": "name"
                 }
             ]
         },
@@ -137,6 +165,10 @@
                 {
                     "name": "follower",
                     "type": "uint64"
+                },
+                {
+                    "name": "follow",
+                    "type": "bool"
                 }
             ]
         }
@@ -154,8 +186,18 @@
             "ricardian_contract": ""
         },
         {
-            "name": "end",
-            "type": "end",
+            "name": "close",
+            "type": "close",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "erase",
+            "type": "erase",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setguess",
+            "type": "setguess",
             "ricardian_contract": ""
         },
         {
@@ -166,6 +208,13 @@
     ],
     "tables": [
         {
+            "name": "authconfig",
+            "type": "OracleConfig",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
             "name": "nbadata",
             "type": "NBAData",
             "index_type": "i64",
@@ -175,13 +224,6 @@
         {
             "name": "nbasubscribe",
             "type": "NBASubscribe",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
-            "name": "oracleconfig",
-            "type": "OracleConfig",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

@@ -45,9 +45,9 @@ void NBASports::transfer( name from, name to, asset quantity, string memo )
 void NBASports::create( string &&param, name creator, asset value )
 {
     vector<string> params = split( param, '|' );
-    if ( params.size() != 4 || stoul(params[1]) > 1 || stoul(params[2]) > 2 )
+    if ( params.size() != 4 || stoul(params[1]) > 1 || stoul(params[2]) > 2 || stol(params[3]) <= 0 )
     {
-        ROLLBACK( "invalid 'create' memo: create|mid|bet[=0,1]|type[=0,1,2]|score|" );
+        ROLLBACK( "invalid 'create' memo: create|mid|bet[=0,1]|type[=0,1,2]|score[>0]|" );
     }
 
     print( params[0], ", ", params[1], ", ", params[2], ", ", params[3] );
@@ -73,7 +73,7 @@ void NBASports::create( string &&param, name creator, asset value )
         .mid         = params[0],
         .bet         = static_cast<uint8_t>( stoul(params[1]) ),
         .type        = static_cast<uint8_t>( stoul(params[2]) ),
-        .score       = stoul(params[3]) / 10.f,
+        .score       = stol(params[3]) / 10.f,
         .creator     = creator,
         .tokenAmount = value
     });
@@ -100,18 +100,22 @@ void NBASports::join( string &&param, name player, asset value )
         ROLLBACK( "invalid 'join' memo: join|mid|creator|" );
     }
 
+    struct T
+    {
+        string mid;
+        name   creator;
+    };
+
     bool find = false;
     auto i = _nbaGuess.end();
-    tie(find, i) = findGuessByType<0>( params[0] );
+    tie(find, i) = findGuessByType<0>( T{
+        .mid     = params[0],
+        .creator = name( params[1] )
+    });
 
     if ( false == find )
     {
-        ROLLBACK( "the 'mid' doesn't exist in the guess set" );
-    }
-
-    if ( (*i).creator != name(params[1]) )
-    {
-        ROLLBACK( "this guess isn't created by this creator" );
+        ROLLBACK( "the 'mid' with this creator doesn't exist in the guess set" );
     }
 
     if ( (*i).player != name() )

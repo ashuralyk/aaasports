@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Mar  3 21:36:06 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Mar 17 21:33:30 2019",
     "version": "eosio::abi/1.1",
     "structs": [
         {
@@ -15,8 +15,12 @@
                     "type": "float32"
                 },
                 {
-                    "name": "overCreateFeeRate",
-                    "type": "float32"
+                    "name": "oracleContract",
+                    "type": "name"
+                },
+                {
+                    "name": "overCreate",
+                    "type": "OverCreate"
                 }
             ]
         },
@@ -42,7 +46,7 @@
                 },
                 {
                     "name": "score",
-                    "type": "uint16"
+                    "type": "float32"
                 },
                 {
                     "name": "creator",
@@ -63,12 +67,60 @@
             ]
         },
         {
+            "name": "OverCreate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "startRate",
+                    "type": "float32"
+                },
+                {
+                    "name": "perRate",
+                    "type": "float32"
+                },
+                {
+                    "name": "startCreate",
+                    "type": "uint8"
+                },
+                {
+                    "name": "perCreate",
+                    "type": "uint8"
+                },
+                {
+                    "name": "lowerFund",
+                    "type": "asset"
+                },
+                {
+                    "name": "stepFund",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "erase",
+            "base": "",
+            "fields": [
+                {
+                    "name": "mid",
+                    "type": "string"
+                },
+                {
+                    "name": "creator",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "setconfig",
             "base": "",
             "fields": [
                 {
                     "name": "config",
                     "type": "NBAConfig"
+                },
+                {
+                    "name": "del",
+                    "type": "bool"
                 }
             ]
         },
@@ -89,6 +141,11 @@
     ],
     "types": [],
     "actions": [
+        {
+            "name": "erase",
+            "type": "erase",
+            "ricardian_contract": ""
+        },
         {
             "name": "setconfig",
             "type": "setconfig",

@@ -58,7 +58,7 @@ private:
         auto i = _nbaGuess.end();
         if constexpr ( tid == 0 ) {
             i = find_if( _nbaGuess.begin(), _nbaGuess.end(), [&](auto &v) {
-                return v.mid == type;
+                return v.mid == type.mid && v.creator == type.creator;
             });
         } else if constexpr ( tid == 1 ) {
             i = _nbaGuess.find( type );
