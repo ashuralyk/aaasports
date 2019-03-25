@@ -38,7 +38,7 @@ void NBASports::transfer( name from, name to, asset quantity, string memo )
     }
     else
     {
-        ROLLBACK( "invalid memo: must go with 'create' or 'join' as fist word" );
+        ROLLBACK( "invalid memo: must go with 'create' or 'join' as the fist word" );
     }
 }
 
@@ -73,14 +73,14 @@ void NBASports::create( string &&param, name creator, asset value )
         .mid         = params[0],
         .bet         = static_cast<uint8_t>( stoul(params[1]) ),
         .type        = static_cast<uint8_t>( stoul(params[2]) ),
-        .score       = stoul(params[3]) / 10.f,
+        .score       = stof(params[3]) / 10.f,
         .creator     = creator,
         .tokenAmount = value
     });
 
     if ( false == pushed )
     {
-        ROLLBACK( "the 'mid' is already created by you" );
+        ROLLBACK( "the 'mid' is already created by " + creator.to_string() );
     }
 
     action( 
@@ -111,17 +111,17 @@ void NBASports::join( string &&param, name player, asset value )
 
     if ( (*i).creator != name(params[1]) )
     {
-        ROLLBACK( "this guess isn't created by this creator" );
+        ROLLBACK( "this guess isn't created by " + (*i).creator.to_string() );
     }
 
     if ( (*i).player != name() )
     {
-        ROLLBACK( "this guess is already on playing" );
+        ROLLBACK( "this guess is already on playing, and the player is " + (*i).player.to_string() );
     }
 
     if ( (*i).tokenAmount != value )
     {
-        ROLLBACK( "the token doesn't match this guess" );
+        ROLLBACK( "the imported token amount doesn't match this guess's" );
     }
 
     if ( (*i).creator == player )
@@ -131,7 +131,7 @@ void NBASports::join( string &&param, name player, asset value )
 
     if ( (*i).winner != name() )
     {
-        ROLLBACK( "this guess already has a winner, refuse to join" );
+        ROLLBACK( "this guess already has a winner who is " + (*i).winner.to_string() + ", so refuse to join" );
     }
 
     _nbaGuess.modify( i, get_self(), [&](auto &v) {
@@ -169,7 +169,7 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
 
         if ( (*i).winner != name() )
         {
-            ROLLBACK( "this guess already has a winner" );
+            ROLLBACK( "this guess already has a winner who is " + (*i).winner.to_string() );
         }
 
         _nbaGuess.modify( i, get_self(), [&](auto &v) {
@@ -184,7 +184,7 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
                     permission_level{ get_self(), "active"_n },
                     "eosio.token"_n,
                     "transfer"_n,
-                    make_tuple( get_self(), v.creator, payback, "您在AAASports上的竞猜{" + v.mid + "}已结束，返还无人参加情况下的EOS(扣除手续费)" )
+                    make_tuple( get_self(), v.creator, payback, "您在AAASports上的竞猜{" + v.mid + "}已结束，返还无人参加情况下的EOS(已扣除手续费)" )
                 ).send();
             }
             // 正常结束竞猜
@@ -198,7 +198,7 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
                     permission_level{ get_self(), "active"_n },
                     "eosio.token"_n,
                     "transfer"_n,
-                    make_tuple( get_self(), v.winner, payback, "恭喜，您在AAASports上赢得竞猜{" + v.mid + "}，已发放EOS(扣除手续费)" )
+                    make_tuple( get_self(), v.winner, payback, "恭喜，您在AAASports上赢得竞猜{" + v.mid + "}，发放EOS(已扣除手续费)" )
                 ).send();
             }
         });
@@ -336,9 +336,9 @@ name NBASports::getWinner( ORACLE::NBAData &oracle, GUESS::NBAGuess &guess )
         {
             creatorWin = [&]() {
                 if ( guess.bet == 0 ) {
-                    return static_cast<float>(oracle.homeScore - oracle.awayScore) > guess.score;
+                    return static_cast<float>(oracle.homeScore) - static_cast<float>(oracle.awayScore) > guess.score;
                 } else {
-                    return static_cast<float>(oracle.homeScore - oracle.awayScore) < guess.score;
+                    return static_cast<float>(oracle.homeScore) - static_cast<float>(oracle.awayScore) < guess.score;
                 }
             };
         }
