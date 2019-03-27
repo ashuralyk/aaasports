@@ -31,6 +31,8 @@ public:
     void erase( string mid, name creator );
 
 private:
+    float stof( string &view );
+
     vector<string> split( string &view, char s );
 
     template < int tid, typename _Type >
@@ -91,8 +93,8 @@ private:
                     return v.creator == creator;
                 });
                 auto o = c.overCreate;
-                if ( auto d = sum - o.startCreate; d >= 0 ) {
-                    float rate = o.startRate + o.perRate * (d % o.perCreate);
+                if ( auto d = static_cast<int>(sum) - static_cast<int>(o.startCreate); d >= 0 ) {
+                    float rate = o.startRate + o.perRate * (d / o.perCreate);
                     return static_cast<uint32_t>( rate * 100 ) * quantity / 100;
                 }
             }
@@ -108,8 +110,8 @@ private:
                 return v.creator == creator;
             });
             auto o = c.overCreate;
-            if ( auto d = sum - o.startCreate; d >= 0 ) {
-                return o.lowerFund + d * o.stepFund;
+            if ( auto d = static_cast<int>(sum) - static_cast<int>(o.startCreate); d >= 0 ) {
+                return o.lowerFund + o.stepFund * (d / o.perCreate);
             }
         }
         return c.overCreate.lowerFund;

@@ -11,7 +11,11 @@ void NBASports::setconfig( GUESS::NBAConfig config, bool del )
     }
     else
     {
-        eosio_assert( config.overCreate.perCreate > 0, "the 'perCreate' must be greater than 0" );
+        eosio_assert( config.failedFeeRate        > 0.f, "the 'failedFeeRate' must be greater than 0" );
+        eosio_assert( config.winnerFeeRate        > 0.f, "the 'winnerFeeRate' must be greater than 0" );
+        eosio_assert( config.overCreate.startRate > 0,   "the 'startRate' in overCreate must be greater than 0" );
+        eosio_assert( config.overCreate.perRate   > 0,   "the 'perRate' in overCreate must be greater than 0" );
+        eosio_assert( config.overCreate.perCreate > 0,   "the 'perCreate' in overCreate must be greater than 0" );
         _config.set( config, get_self() );
     }
 }
@@ -45,9 +49,9 @@ void NBASports::transfer( name from, name to, asset quantity, string memo )
 void NBASports::create( string &&param, name creator, asset value )
 {
     vector<string> params = split( param, '|' );
-    if ( params.size() != 4 || stoul(params[1]) > 1 || stoul(params[2]) > 2 || stol(params[3]) <= 0 )
+    if ( params.size() != 4 || stoul(params[1]) > 1 || stoul(params[2]) > 2 )
     {
-        ROLLBACK( "invalid 'create' memo: create|mid|bet[=0,1]|type[=0,1,2]|score[>0]|" );
+        ROLLBACK( "invalid 'create' memo: create|mid|bet[=0,1]|type[=0,1,2]|score|" );
     }
 
     print( params[0], ", ", params[1], ", ", params[2], ", ", params[3] );
@@ -73,7 +77,7 @@ void NBASports::create( string &&param, name creator, asset value )
         .mid         = params[0],
         .bet         = static_cast<uint8_t>( stoul(params[1]) ),
         .type        = static_cast<uint8_t>( stoul(params[2]) ),
-        .score       = stof(params[3]) / 10.f,
+        .score       = stof(params[3]),
         .creator     = creator,
         .tokenAmount = value
     });
@@ -265,6 +269,31 @@ void NBASports::erase( string mid, name creator )
     ).send();
 }
 
+float NBASports::stof( string &view )
+{
+    const char *s = view.c_str();
+    float rez = 0, fact = 1;
+    if (*s == '-') {
+        s++;
+        fact = -1;
+    }
+
+    for (int point_seen = 0; *s; s++) {
+        if (*s == '.') {
+            point_seen = 1; 
+            continue;
+        }
+
+        int d = *s - '0';
+        if (d >= 0 && d <= 9) {
+            if (point_seen) fact /= 10.0f;
+            rez = rez * 10.0f + (float)d;
+        }
+    }
+
+    return rez * fact;
+}
+
 vector<string> NBASports::split( string &view, char s )
 {
     vector<string> params;
@@ -292,13 +321,13 @@ tuple<bool, uint64_t> NBASports::pushGuess( GUESS::NBAGuess &&guess )
         }
 
         // 扣除创建过多情况下的手续费
-        print( "CREATE: old = ", guess.tokenAmount );
+        print( " | CREATE: old = ", guess.tokenAmount );
         guess.tokenAmount -= getFee<2>( guess.tokenAmount, guess.creator );
         print( ", new = ", guess.tokenAmount );
 
-        if ( guess.tokenAmount < getLowerBoundAsset(guess.creator) )
+        if ( auto lowerBound = getLowerBoundAsset(guess.creator); guess.tokenAmount < lowerBound )
         {
-            ROLLBACK( "your asset doesn't match our current start bet foud of yours, please increase and try again" );
+            ROLLBACK( "your asset doesn't match our starting foud of yours, please increase and try again (at least " + lowerBound.to_string() + ", current is " + guess.tokenAmount.to_string() + ")" );
         }
 
         // 加入竞猜
