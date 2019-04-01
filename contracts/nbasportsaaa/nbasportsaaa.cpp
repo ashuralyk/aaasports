@@ -56,10 +56,7 @@ void NBASports::create( string &&param, name creator, asset value )
 
     print( params[0], ", ", params[1], ", ", params[2], ", ", params[3] );
 
-    bool hasMid;
-    ORACLE::NBAData nbaData;
-
-    tie(hasMid, nbaData) = findOracleByType<0>( params[0] );
+    auto [hasMid, nbaData] = findOracleByType<0>( params[0] );
 
     if ( false == hasMid )
     {
@@ -71,9 +68,12 @@ void NBASports::create( string &&param, name creator, asset value )
         ROLLBACK( "the game represented by this 'mid' from the memo has closed yet" );
     }
 
-    bool pushed;
-    uint64_t globalId;
-    tie(pushed, globalId) = pushGuess({
+    if ( now() > nbaData.startTime )
+    {
+        ROLLBACK( "the onchained-time is already behind the beginning time, create or join are both closed." );
+    }
+
+    auto [pushed, globalId] = pushGuess({
         .mid         = params[0],
         .bet         = static_cast<uint8_t>( stoul(params[1]) ),
         .type        = static_cast<uint8_t>( stoul(params[2]) ),
@@ -104,15 +104,27 @@ void NBASports::join( string &&param, name player, asset value )
         ROLLBACK( "invalid 'join' memo: join|mid|creator|" );
     }
 
+    // 检查数据集合
+    auto [hasMid, nbaData] = findOracleByType<0>( params[0] );
+
+    if ( false == hasMid )
+    {
+        ROLLBACK( "the 'mid' from the memo doesn't exist in the data set" );
+    }
+
+    if ( now() > nbaData.startTime )
+    {
+        ROLLBACK( "the onchained-time is already behind the beginning time, create or join are both closed." );
+    }
+
+    // 检查竞猜集合
     struct T
     {
         string mid;
         name   creator;
     };
 
-    bool find = false;
-    auto i = _nbaGuess.end();
-    tie(find, i) = findGuessByType<0>( T{
+    auto [find, i] = findGuessByType<0>( T{
         .mid     = params[0],
         .creator = name( params[1] )
     });
