@@ -84,7 +84,7 @@ void NBASports::create( string &&param, name creator, asset value )
 
     if ( false == pushed )
     {
-        ROLLBACK( "the 'mid' is already created by " + creator.to_string() );
+        ROLLBACK( "the 'mid' with this guess type is already created by " + creator.to_string() );
     }
 
     action( 
@@ -184,8 +184,7 @@ void NBASports::settle( uint64_t globalId, vector<uint64_t> followers )
 
     for ( uint64_t follower : followers )
     {
-        auto i = _nbaGuess.end();
-        tie(find, i) = findGuessByType<1>( follower );
+        auto [find, i] = findGuessByType<1>( follower );
 
         if ( false == find )
         {
@@ -326,7 +325,7 @@ tuple<bool, uint64_t> NBASports::pushGuess( GUESS::NBAGuess &&guess )
         {
             auto nba = (*i);
             globalId = nba.globalId;
-            if ( nba.mid == guess.mid && nba.creator == guess.creator )
+            if ( nba.mid == guess.mid && nba.creator == guess.creator && nba.type == guess.type )
             {
                 return make_tuple( false, 0 );
             }
