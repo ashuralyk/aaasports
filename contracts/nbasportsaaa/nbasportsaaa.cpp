@@ -280,6 +280,15 @@ void NBASports::erase( string mid, name creator )
     ).send();
 }
 
+void NBASports::clear()
+{
+    require_auth( get_self() );
+
+    _config.remove();
+    while( _nbaGuess.begin() != _nbaGuess.end() )
+        _nbaGuess.erase( _nbaGuess.begin() );
+}
+
 float NBASports::stof( string &view )
 {
     const char *s = view.c_str();
@@ -406,7 +415,7 @@ void apply( uint64_t receiver, uint64_t code, uint64_t action )
     {
         switch( action )
         {
-            EOSIO_DISPATCH_HELPER( NBASports, (setconfig)(settle)(erase) )
+            EOSIO_DISPATCH_HELPER( NBASports, (setconfig)(settle)(erase)(clear) )
         }
     }
     else

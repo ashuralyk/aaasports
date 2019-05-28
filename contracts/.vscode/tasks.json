@@ -7,7 +7,7 @@
             "label": "eosio-cpp",
             "type": "shell",
             "command": [
-                "ssh vimchain@192.168.100.169 'cd /home/vimchain/Starteos/CONTRACTS_DIR/sportsoracle && eosio-cpp -o sportsoracle.wasm sportsoracle.cpp --abigen'"
+                "ssh vimchain@192.168.179.128 'cd /home/vimchain/Starteos/CONTRACTS_DIR/sportsoracle && eosio-cpp -o sportsoracle.wasm sportsoracle.cpp --abigen'"
             ],
             "problemMatcher": []
         },
@@ -15,7 +15,7 @@
             "label": "eosio-cpp-nba",
             "type": "shell",
             "command": [
-                "ssh vimchain@192.168.100.169 'cd /home/vimchain/Starteos/CONTRACTS_DIR/nbasportsaaa && eosio-cpp -o nbasportsaaa.wasm nbasportsaaa.cpp --abigen'"
+                "ssh vimchain@192.168.179.128 'cd /home/vimchain/Starteos/CONTRACTS_DIR/nbasportsaaa && eosio-cpp -o nbasportsaaa.wasm nbasportsaaa.cpp --abigen' -I=."
             ],
             "problemMatcher": []
         },
@@ -23,7 +23,7 @@
             "label": "scp",
             "type": "shell",
             "command": [
-                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/sportsoracle vimchain@192.168.100.169:/home/vimchain/Starteos/CONTRACTS_DIR",
+                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/sportsoracle vimchain@192.168.179.128:/home/vimchain/Starteos/CONTRACTS_DIR",
             ],
             "problemMatcher": []
         },
@@ -31,7 +31,7 @@
             "label": "scp-nba",
             "type": "shell",
             "command": [
-                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/nbasportsaaa vimchain@192.168.100.169:/home/vimchain/Starteos/CONTRACTS_DIR",
+                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/nbasportsaaa vimchain@192.168.179.128:/home/vimchain/Starteos/CONTRACTS_DIR",
             ],
             "problemMatcher": []
         },
@@ -39,7 +39,7 @@
             "label": "scp-common",
             "type": "shell",
             "command": [
-                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/common vimchain@192.168.100.169:/home/vimchain/Starteos/CONTRACTS_DIR",
+                "scp -r C:/Users/ashur/Desktop/aaasports/contracts/common vimchain@192.168.179.128:/home/vimchain/Starteos/CONTRACTS_DIR",
             ],
             "problemMatcher": []
         },
@@ -47,7 +47,7 @@
             "label": "deploy",
             "type": "shell",
             "command": [
-                "ssh vimchain@192.168.100.169 'cleos set contract user.com /home/vimchain/Starteos/CONTRACTS_DIR/sportsoracle/'"
+                "ssh vimchain@192.168.179.128 'cleos set contract user.com /home/vimchain/Starteos/CONTRACTS_DIR/sportsoracle/'"
             ],
             "problemMatcher": []
         },
@@ -55,7 +55,7 @@
             "label": "deploy-nba",
             "type": "shell",
             "command": [
-                "ssh vimchain@192.168.100.169 'cleos set contract buy.com /home/vimchain/Starteos/CONTRACTS_DIR/nbasportsaaa/'"
+                "ssh vimchain@192.168.179.128 'cleos set contract buy.com /home/vimchain/Starteos/CONTRACTS_DIR/nbasportsaaa/'"
             ],
             "problemMatcher": []
         },
@@ -63,7 +63,7 @@
             "label": "open wallet",
             "type": "shell",
             "command": [
-                "ssh vimchain@192.168.100.169 'sh /home/vimchain/Starteos/wiki/unlock_default.sh'"
+                "ssh vimchain@192.168.179.128 'sh /home/vimchain/Starteos/wiki/unlock_default.sh'"
             ],
             "problemMatcher": []
         }

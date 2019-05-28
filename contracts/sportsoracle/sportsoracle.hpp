@@ -35,6 +35,9 @@ public:
     [[eosio::action]]
     void subscribe( string mid, uint64_t follower, bool follow );
 
+    [[eosio::action]]
+    void clear();
+
 private:
     tuple<INDEX::NBASubscribe::const_iterator, uint64_t> findFollower( string mid );
 

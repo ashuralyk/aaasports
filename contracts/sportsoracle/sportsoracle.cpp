@@ -177,6 +177,18 @@ void NBAOracle::subscribe( string mid, uint64_t follower, bool follow )
     }
 }
 
+void NBAOracle::clear()
+{
+    require_auth( get_self() );
+
+    _config.remove();
+    while( _nbaData.begin() != _nbaData.end() )
+        _nbaData.erase( _nbaData.begin() );
+
+    while( _nbaSubscribe.begin() != _nbaSubscribe.end() )
+        _nbaSubscribe.erase( _nbaSubscribe.begin() );
+}
+
 tuple<INDEX::NBASubscribe::const_iterator, uint64_t> NBAOracle::findFollower( string mid )
 {
     uint64_t globalId = 0;
@@ -223,4 +235,4 @@ void NBAOracle::eraseGuess( string mid, const set<uint64_t> &guessGlobalIds )
     }
 }
 
-EOSIO_DISPATCH( NBAOracle, (add)(close)(erase)(auth)(setguess)(subscribe) )
+EOSIO_DISPATCH( NBAOracle, (add)(close)(erase)(auth)(setguess)(subscribe)(clear) )

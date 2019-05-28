@@ -30,6 +30,9 @@ public:
     [[eosio::action]]
     void erase( string mid, name creator );
 
+    [[eosio::action]]
+    void clear();
+
 private:
     float stof( string &view );
 
